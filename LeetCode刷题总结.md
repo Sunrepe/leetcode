@@ -70,6 +70,40 @@ int bsearch_2(int l, int r)
 
 二分的`while`循环的结束条件是`l >= r`，所以在循环结束时`l`有可能会大于`r`，此时就可能导致越界，因此，基本上二分问题优先取`r`都不会翻车。
 
+#### 搜索结果讨论
+
+- **没找到**：在`r == 0`或`r == len-1` 时，需要单独讨论找到的结果的正确性。有时候可以合并！
+
+#### 常见问题
+
+- 找到`array`中最接近目标`x`的元素
+
+  包含 绝对值最接近，或者` <= x` `< x` 的最大值，或者 `>= x` `> x`  的最小值。
+
+  细节：比较mid 结果，更新搜索区间时，反向考虑！即，找`< x` 结果，需要去更新`>= x`的区间，
+
+  > 方法：先手动生成一个接近目标值的序列，确定区间更新方式。生成区间时需要有重复元素！
+  >
+  > 距离：对于目标值`5`，则生成序列` [3,4,5,5,5,6,7]`, 并针对 `mid` 为该序列中的每一个数的时候如何进行更新！
+
+  - 找到 `<x` 的最大值：最后一个小于x的数。
+
+    ```python
+    def search_less_x(nums,x):
+        l, r = 0, len(nums)-1
+        while(l<r):
+            mid = l+r >> 1
+            if nums[mid] < x:  # 条件设为小于x
+                l = mid+1
+            else:
+                r = mid
+        return r if （r==len(nums)-1 and nums[r]<x） else r-1
+    ```
+
+  - 找到 `<=x` 的最后一个数，条件设为 `nums[mid] <= x`， 返回`r-1`
+
+### 练习题目
+
 #### Problem 209
 
 > 给定一个含有 n 个正整数的数组和一个正整数 target 。
@@ -84,7 +118,7 @@ int bsearch_2(int l, int r)
 
 ```python
 MAXN = 2e9
-class eSolution:
+class Solution:
     def minSubArrayLen(self, target: int, nums: List[int]) -> int:
         l, total, res = 0, 0, MAXN
         for r in range(len(nums)):
@@ -154,3 +188,145 @@ class Solution:
 >
 > `输入：arr = [1,2,2,2,2,2,2,3,3], k = 3, x = 3；输出：[2,3,3]`
 
+#### problem 300
+
+> 给你一个整数数组 `nums` ，找到其中最长严格递增子序列的长度。
+>
+> **子序列&nbsp;**是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素的顺序。例如，`[3,6,2,7]` 是数组 `[0,3,1,6,2,2,7]` 的子序列。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> <pre>**输入：**nums = [10,9,2,5,3,7,101,18]
+> **输出：**4
+> </pre>
+>
+> **提示：**
+>
+> *   1 &lt;= nums.length &lt;= 2500
+> *   -10<sup>4</sup> &lt;= nums[i] &lt;= 10<sup>4</sup>
+>
+> **进阶：**
+>
+> *   你能将算法的时间复杂度降低到&nbsp;`O(n log(n))` 吗?
+
+##### 解决思路：动态规划 
+
+定义： `opt[i]`: 记录以`i `结尾的序列的 最长递增子序列长度，即数组`nums[0:i+1]`的最长子序列长度。
+
+状态更新：
+$$
+\text{opt}[i]=\left\{
+\begin{array}{l}
+1,\quad & \text{nums}[i]< \text{num}[0:i]的每一项 \\
+\max (\text{opt}[t]+1),& 对每一个\text{nums}[t]< \text{num}[i]的每一项
+\end{array}  
+
+\right.
+$$
+复杂度$O(n^2)$，一次遍历找到所有最优`opt[k]`；对于当前的`opt[k]`而言，遍历前面所有项，进行状态更新。
+
+```python
+class Solution:
+    def lengthOfLIS(self, nums: List[int]) -> int:
+        length = len(nums)
+        opt = [1]
+        # 一次遍历 O(n)
+        for i in range(1, length):
+            # 找到小于当前项的最大值
+            maxx = 1
+            for _ in range(i):
+                if nums[_] < nums[i] and opt[_]+1 > maxx:
+                    maxx = opt[_]+1
+            opt.append(maxx)
+        return max(opt)
+```
+
+##### 进阶思路：动态规划 + 二分
+
+传统的动态规划方法复杂度较高的原因是：原数组是无序的，最优值opt定义也是无序的，在opt[k] 的更新过程中，必须重新遍历所有前面的k-1个数组，才能正确更新。
+
+**复杂度：$O(n \log n)$**， 比纯dp快不少！
+
+改进思路是改变最优值状态定义：
+
+- 定义：`opt[i] `记录 长度为` i+1` 最优子序列末尾元素的最小值。
+
+  说明：如果存在两个长度为`2`的最优子序列`[1,8]`和`[2,4] `则更新，`opt[2-1]=4`
+
+- 状态更新
+  $$
+  \text{opt}=\left\{
+  \begin{array}{l}
+  \text{opt}[0]=\text{nums}[i],\quad & \text{nums}[i]< \text{opt}[0], \\
+  \text{opt}[t+1]=nums[i],& 其中\text{opt}[t]是满足 < \text{num}[i]的最大值
+  \end{array}  
+  \right.
+  $$
+
+```python
+class Solution:
+    def lengthOfLIS(self, nums: List[int]) -> int:
+        opt = [nums[0]]
+        for i in range(1, len(nums)):
+            l, r = 0, len(opt)-1
+            # 二分查找 <x 的最大数
+            while(l<r):
+                mid = l+r >> 1
+                if opt[mid]<nums[i]:
+                    l = mid+1
+                else:
+                    r = mid
+            # opt[r-1] 是目标结果，opt[r]是第一个不满足要求的数，刚好需要调整。
+            if r==len(opt)-1 and opt[r]<nums[i]:  # 末尾特殊情况，此时满足<x 要求
+                opt.append(nums[i])
+            else:
+                opt[r] = min(opt[r], nums[i])
+        return len(opt)
+```
+
+​	注意，在上述实现中，`if`部分表示 ：找到了目标，且目标是`opt`数组最后一个元素，此时可以形成更长的递增子序列。
+
+​	**再进阶**：如果要求最长非降子序列长度，只需要第8行 判断 ` if opt[mid] <= nums[i]` 即可
+
+#### problem 1760
+
+> 给你一个整数数组&nbsp;`nums`&nbsp;，其中&nbsp;`nums[i]`&nbsp;表示第&nbsp;`i`&nbsp;个袋子里球的数目。同时给你一个整数&nbsp;`maxOperations`&nbsp;。
+>
+> 你可以进行如下操作至多&nbsp;`maxOperations`&nbsp;次：
+>
+> *   选择任意一个袋子，并将袋子里的球分到&nbsp;2 个新的袋子中，每个袋子里都有 **正整数**&nbsp;个球。
+>
+>     * 比方说，一个袋子里有&nbsp;`5`&nbsp;个球，你可以把它们分到两个新袋子里，分别有 `1`&nbsp;个和 `4`&nbsp;个球，或者分别有 `2`&nbsp;个和 `3`&nbsp;个球。
+>
+> 你的开销是单个袋子里球数目的 **最大值**&nbsp;，你想要 **最小化**&nbsp;开销。
+>
+> 请你返回进行上述操作后的最小开销。
+>
+> 
+>
+> **示例 1：**
+>
+> <pre>**输入：**nums = [2,4,8,2], maxOperations = 4
+> **输出：**2
+> **解释：**
+> - 将装有 8 个球的袋子分成装有 4 个和 4 个球的袋子。[2,4,**8**,2] -&gt; [2,4,4,4,2] 。
+> - 将装有 4 个球的袋子分成装有 2 个和 2 个球的袋子。[2,**4**,4,4,2] -&gt; [2,2,2,4,4,2] 。
+> - 将装有 4 个球的袋子分成装有 2 个和 2 个球的袋子。[2,2,2,**4**,4,2] -&gt; [2,2,2,2,2,4,2] 。
+> - 将装有 4 个球的袋子分成装有 2 个和 2 个球的袋子。[2,2,2,2,2,**4**,2] -&gt; [2,2,2,2,2,2,2,2] 。
+> 装有最多球的袋子里装有 2 个球，所以开销为 2 并返回 2 。
+> </pre>
+>
+> **示例 3：**
+>
+> <pre>**输入：**nums = [7,17], maxOperations = 2
+> **输出：**7
+> </pre>
+>
+> &nbsp;
+>
+> **提示：**
+>
+> *   1 &lt;= nums.length &lt;= 10<sup>5</sup>
+> *   1 &lt;= maxOperations, nums[i] &lt;= 10<sup>9</sup>

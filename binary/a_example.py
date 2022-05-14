@@ -1,6 +1,4 @@
 from typing import List
-import numpy as np
-MAXN = 2e9
 
 
 class Solution:

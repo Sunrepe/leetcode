@@ -70,7 +70,7 @@ int bsearch_2(int l, int r)
 
 二分的`while`循环的结束条件是`l >= r`，所以在循环结束时`l`有可能会大于`r`，此时就可能导致越界，因此，基本上二分问题优先取`r`都不会翻车。
 
-#### 模板3：红蓝划分
+#### 模板3：红蓝划分 **good**
 
 [参考：来自B站五点七边](https://www.bilibili.com/video/BV1d54y1q7k7)
 
@@ -102,9 +102,9 @@ while l+1 != r:
 - 红区，在x右侧，但是要根据是否含有等于号区分细节边界
 - 蓝区，在x左侧； 
 
-**说明：**
+*说明*：该方法简单易懂，而且模型明确。在复习时可以快速上手！模板1和模板2相对来说也比较容易入手，但是细节还需要继续背一下！
 
-该方法简单易懂，而且模型明确。在复习时可以快速上手！模板1和模板2相对来说也比较容易入手，但是细节还需要继续背一下！
+**使用方法：**
 
 
 
@@ -142,15 +142,17 @@ while l+1 != r:
 
   - 找到 `<=x` 的最后一个数，条件设为 `nums[mid] <= x`， 返回`r-1`
 
-##### 问题2：最大值最小 **Hard**
+##### 问题2：最大值最小化 **Hard**
 
-- 原始：分割数组最大值最小化；给定一个非负整数数组 `nums` 和一个整数&nbsp;`m` ，你需要将这个数组分成&nbsp;`m`_&nbsp;_个非空的连续子数组。设计一个算法使得这&nbsp;`m`_&nbsp;_个子数组各自和的最大值最小。
-
-
-- 进阶：给定一个数组，将其划分成 `M` 份，使得每份元素之和最大值最小，每份可以任意减去其中一个元素。参见 `LCP 12`
-- 进阶：将数组里的数切割，使得数组大小变为`N + M`份,参见 `p1760`
+- 原始：分割数组最大值最小化；给定一个非负整数数组 `nums` 和一个整数&nbsp;`m` ，你需要将这个数组分成&nbsp;`m`_&nbsp;_个非空的连续子数组。设计一个算法使得这&nbsp;`m`_&nbsp;_个子数组各自和的最大值最小。详见 `p410`
 
 
+- 进阶：给定一个数组，将其划分成 `M` 份，使得每份元素之和最大值最小，每份可以任意减去其中一个元素。详见 `LCP 12`
+- 进阶：将数组里的数切割，使得数组大小变为`N + M`份；详见 `p1760`
+
+##### 问题3：最小值最大化 **Hard**
+
+- 原始：将一个数组`array`分成`m`段，使得每段之间的距离的最小值最大化。详见`p1552`
 
 ### 练习题目
 
@@ -340,7 +342,7 @@ class Solution:
 
 ​	**再进阶**：如果要求最长非降子序列长度，只需要第8行 判断 ` if opt[mid] <= nums[i]` 即可
 
-#### problem 410
+#### problem 410  **Hard**
 
 > 给定一个非负整数数组 `nums` 和一个整数&nbsp;`m` ，你需要将这个数组分成&nbsp;`m`_&nbsp;_个非空的连续子数组。
 >
@@ -366,7 +368,9 @@ class Solution:
 
 ​		「将数组分割为 `m` 段，求……」是动态规划题目常见的问法。
 
-​		显然一维opt无法进行状态定理，可以拓展到二维`opt[i][j]`。
+​		`Time_limit`！但是时此类问题的最常见的解法。
+
+显然一维opt无法进行状态定理，可以拓展到二维`opt[i][j]`。
 
 定义： `opt[i][j]`: 记录以`i `结尾的序列的序列分割成`j`段的最优值，即其连续子数组和的最小值。
 
@@ -391,6 +395,27 @@ $$
 \right.
 $$
 
+```python
+class dp_Solution:
+    def splitArray(self, nums: List[int], m: int) -> int:
+        n = len(nums)
+        f = [[10 ** 9] * m for _ in range(n)]
+        # 初始化第一列
+        total, sub =0, []
+        for i in range(0, n):
+            total += nums[i]
+            sub.append(total)
+            f[i][0] = total
+        # 更新
+        for j in range(1, m):
+            for i in range(j, n):
+                minx = 10 ** 9
+                for k in range(i):
+                    minx = min(minx, max(f[k][j - 1], sub[i]-sub[k]))
+                f[i][j] = minx
+        return f[n-1][m-1]
+```
+
 时间复杂度：$O(n^2 \times m)$，其中 `n` 是数组的长度，`m` 是分成的非空的连续子数组的个数。总状态数为 $O(n \times m)$，状态转移时间复杂度 `O(n)`，所以总时间复杂度为 $O(n^2 \times m)$
 
 
@@ -399,13 +424,53 @@ $$
 
 「使……最大值尽可能小」是二分搜索题目常见的问法。
 
+- 求最大值最小，明牌告诉你要用二分，因为是最小，所以要用`>= x`的这个模板
+
 [核心参考](https://leetcode.cn/problems/split-array-largest-sum/solution/bai-hua-er-fen-cha-zhao-by-xiao-yan-gou/)
 
-- 求最大值最小，明牌告诉你要用二分，因为是最小，所以要用`>= x`的这个模板
-- 该模板中，当`r=mid`时，是满足条件的情况，此时要写一个`check`函数，并且是满足题意的。
-- 因为是连续的数组，所以可以贪心的从数组中取数，只要在当前限制条件下，分组数量`<= k`，就是一个可能的取值，因此返回`True`。
+原题已知一个数组`arr`，需要将其切分为`m`段，使得`m`段中每段和的最大值最小！
 
+> 转换描述：求一个目标值`x`，使得`m`段的各自和的最大值都`<=x`；
 
+- 显然，由于数组里的数不可切分，`x`的范围是`[max(arr), sum(arr)]`
+
+- 搜索最优值`x`的过程可以是二分的！
+
+- 检验`x`是否满足要求：
+
+  以`x`为上限，切分数组`arr`，由于数组切分是有序的，该过程可以贪心的进行！
+
+  如果切分的段数 `cnt<=m`，则满足；否则，不满足。 
+
+- 二分模板分析：
+
+  - 假设最优目标值是18，则在搜索`[16,17,18,19,20]`过程中：
+  - 显然对应于`>=18` 是正确的结果。17不满足，在右侧；19满足，在左侧；18满足，在左侧；
+  - 对应模板`>=x` 的最小值。
+
+```python
+class Solution:
+    def splitArray(self, nums: List[int], m: int) -> int:
+        # 检验当前x：以x为上限切分数组，数组需要切成几段？
+        def check(x):
+            cnt, tot = 0, 0
+            for num in nums:
+                tot += num
+                if tot > x:
+                    cnt += 1
+                    tot = num
+            return True if cnt + 1 <= m else False
+        # 搜索最大子序列和x 使得可以将原数组拆成m份
+        # 利用红蓝树实现
+        l, r = max(nums)-1, sum(nums)+1
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(mid):
+                r = mid
+            else:
+                l = mid
+        return r
+```
 
 #### LCP 12
 
@@ -429,7 +494,47 @@ $$
 > *   1 &lt;= time[i] &lt;= 10000
 > *   1 &lt;= m &lt;= 1000
 
-#### problem 1760  难
+**思路：二分+贪心**
+
+本题思路与problem 410 基本一致。
+
+- 转换：求一个目标值`x`，使得每天以`x`未上限进行刷题，最终完成所有题目，所需天数`<=m`即可。
+- 二分模板：显然，对于最优目标值`x`，所有`>=x` 的结果都是满足要求的。对应`>=x`模板
+- check ：由于每天可以请外援，所以在划分数组时，总是选择当前区间内的最大值移除，统计该区间内其他值之和`tot`，只要其结果`tot <= x`，则可以继续做题(遍历下一个time)
+
+实现：
+
+```python
+class Solution:
+    def minTime(self, time: List[int], m: int) -> int:
+        # 检验当前x：以x为上限切分数组，数组需要切成几段？
+        def check(x):
+            cnt, tot, rm = 0, 0, 0
+            for num in time:
+                if num > rm:
+                    tot += rm
+                    rm = num
+                else:
+                    tot += num
+                if tot > x:
+                    cnt += 1
+                    tot, rm = 0, num
+            return True if cnt + 1 <= m else False
+        # 搜索最大子序列和x 使得可以将原数组拆成m份
+        # 利用红蓝树实现
+        l, r = -1, sum(time)+1
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(mid):
+                r = mid
+            else:
+                l = mid
+        return r
+```
+
+
+
+#### problem 1760  **Hard**
 
 > 给你一个整数数组&nbsp;`nums`&nbsp;，其中&nbsp;`nums[i]`&nbsp;表示第&nbsp;`i`&nbsp;个袋子里球的数目。同时给你一个整数&nbsp;`maxOperations`&nbsp;。
 >
@@ -470,5 +575,341 @@ $$
 > *   1 &lt;= nums.length &lt;= 10<sup>5</sup>
 > *   1 &lt;= maxOperations, nums[i] &lt;= 10<sup>9</sup>
 
-本题较难，需要将原问题转化！
+**思路转化**
+
+求一个目标值`x`，使得数组里每一个数都`<=x`；如果数组里某个数`>x`，则将其拆分为`<=x`的若干个数，要求总共拆分次数`<=maxOperations`即可。
+
+- 二分模板
+
+  显然，对于最小开销，即最优目标值`x`，所有`>=x` 的结果都是满足要求的。
+
+  对应`>=x`模板
+
+- check分析
+
+  对于`>x`的数，尽可能将其拆分成`x`，以减少拆分次数
+
+```python
+class Solution:
+    def minimumSize(self, nums: List[int], maxOperations: int) -> int:
+        # 检验当前x：以x为上限切分数组，数组需要切成几段？
+        def check(x):
+            cnt = 0
+            for num in nums:
+                if num > x:
+                    cnt += (num-1) // x
+            return True if cnt <= maxOperations else False
+        # 搜索最大子序列和x 使得对原数组中的数拆分次数 <=m
+        # 利用红蓝树实现
+        l, r = 0, max(nums)+1
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(mid):
+                r = mid
+            else:
+                l = mid
+        return r
+```
+
+
+
+#### problem 875
+
+> 珂珂喜欢吃香蕉。这里有 `n` 堆香蕉，第 `i` 堆中有&nbsp;`piles[i]`&nbsp;根香蕉。警卫已经离开了，将在 `h` 小时后回来。
+>
+> 珂珂可以决定她吃香蕉的速度 `k` （单位：根/小时）。每个小时，她将会选择一堆香蕉，从中吃掉 `k` 根。如果这堆香蕉少于 `k` 根，她将吃掉这堆的所有香蕉，然后这一小时内不会再吃更多的香蕉。&nbsp;&nbsp;
+>
+> 珂珂喜欢慢慢吃，但仍然想在警卫回来前吃掉所有的香蕉。
+>
+> 返回她可以在 `h` 小时内吃掉所有香蕉的最小速度 `k`（`k` 为整数）。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> <pre>**输入：**piles = [3,6,7,11], h = 8
+> **输出：**4
+> </pre>
+>
+> **示例 2：**
+>
+> <pre>**输入：**piles = [30,11,23,4,20], h = 5
+> **输出：**30
+> </pre>
+>
+> **示例 3：**
+>
+> <pre>**输入：**piles = [30,11,23,4,20], h = 6
+> **输出：**23
+> </pre>
+>
+> &nbsp;
+>
+> **提示：**
+>
+> *   1 &lt;= piles.length &lt;= 10<sup>4</sup>
+> *   piles.length &lt;= h &lt;= 10<sup>9</sup>
+> *   1 &lt;= piles[i] &lt;= 10<sup>9</sup>
+
+思路分析：与problem 1760基本一致，只需要统计，当前速度`x`下，需要多少小时吃完所有香蕉。
+
+```python
+class Solution:
+    def minEatingSpeed(self, piles: List[int], h: int) -> int:
+        # 检验当前x：以x为上限切分数组，数组需要切成几段？
+        def check(x):
+            cnt = 0
+            for num in piles:
+                cnt += (num-1) // x + 1
+            return True if cnt <= h else False
+        # 搜索最大子序列和x 使得可以将原数组拆成m份
+        # 利用红蓝树实现
+        l, r = 0, max(piles)
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(mid):
+                r = mid
+            else:
+                l = mid
+        return r
+```
+
+#### problem 1552
+
+> 在代号为 C-137 的星球上，Rick 发现如果他将两个球放在他新发明的篮子里，它们之间会形成特殊形式的磁力。Rick 有&nbsp;`n`&nbsp;个空的篮子，第&nbsp;`i`&nbsp;个篮子的位置在&nbsp;`position[i]`&nbsp;，Morty&nbsp;想把&nbsp;`m`&nbsp;个球放到这些篮子里，使得任意两球间&nbsp;**最小磁力**&nbsp;最大。
+>
+> 已知两个球如果分别位于&nbsp;`x`&nbsp;和&nbsp;`y`&nbsp;，那么它们之间的磁力为&nbsp;`|x - y|`&nbsp;。
+>
+> 给你一个整数数组&nbsp;`position`&nbsp;和一个整数&nbsp;`m`&nbsp;，请你返回最大化的最小磁力。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> ![](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/08/16/q3v1.jpg)
+>
+> <pre>**输入：**position = [1,2,3,4,7], m = 3
+> **输出：**3
+> **解释：**将 3 个球分别放入位于 1，4 和 7 的三个篮子，两球间的磁力分别为 [3, 3, 6]。最小磁力为 3 。我们没办法让最小磁力大于 3 。
+> </pre>
+>
+> **示例 2：**
+>
+> <pre>**输入：**position = [5,4,3,2,1,1000000000], m = 2
+> **输出：**999999999
+> **解释：**我们使用位于 1 和 1000000000 的篮子时最小磁力最大。
+> </pre>
+>
+> &nbsp;
+>
+> **提示：**
+>
+> *   `n == position.length`
+> *   `2 &lt;= n &lt;= 10^5`
+> *   `1 &lt;= position[i] &lt;= 10^9`
+> *   所有&nbsp;`position`&nbsp;中的整数 **互不相同**&nbsp;。
+> *   `2 &lt;= m &lt;= position.length`
+
+**解题思路一： DP**
+
+和[^problem 410 ]比较，两者可以采用相同的模式进行dp分析：
+
+- 定义： `opt[i][j]`: 记录以`i `结尾的序列的序列放入入`j+2`个球（因为球至少2个，忽略了0和1），球间距最小值的最优结果（最大化最小球间距）。
+
+- 状态转移：对于任意的`opt[i][j]`更新而言，枚举`k`，在第`k`位置插入新的球；
+
+  相当于`position[0:k]`分根成`j+1`个球，其最优结果是`opt[k][j-1]`，
+
+  插入球形成了最后一个新间距是`position[i]-position[k]` 
+  $$
+  \text{opt}[i][j]=\left\{
+  \begin{array}{l}
+  最大值-最小值,\quad & i=[0:n],\;\;=0 \\
+  
+  \max \{\min( opt[k][j-1], \;position[i]-position[k] \}, &其他
+  \end{array}  
+  
+  \right.
+  $$
+  
+
+**解题思路二： 二分搜索**
+
+与前面几题相比，本题是略有不同，属于最大化最小间隔。
+
+- 转换思路：找到一个最大的最优目标值`x`；并且能在数组`position`中找到`m`个数，确保其各数之间的距离在`>=x`。
+
+- 模板分析：对于最优目标值`x`，所有`<=x` 的结果都是有效的。对应`<=x`的二分模板
+
+- `check(x)`：
+
+  如何判断当前的`x`是否满足题目要求，这是本题的难点之一。
+
+  技巧是：在二分之前，先将无序数组`position`转为有序数组，复杂度是$O(n \log n)$；
+
+  进一步二分$O(\log n)$ ，检验的复杂度是$O(n )$，整体复杂度也是$O(n \log n)$
+
+  当`position`是有序的时候，可以贪心进行check：第一个求放在最小位置，之后选择满足`x`要求的最近距离放置下一个球。
+
+```python
+class Solution:
+    def maxDistance(self, position: List[int], m: int) -> int:
+        position.sort()
+        # 检验当前x：以x为上限切分数组，数组需要切成几段？
+        def check(x):
+            cnt, minx = 1, min(position)
+            for p in position:
+                if p >= minx+x:
+                    cnt += 1
+                    minx = p
+            return True if cnt >= m else False
+        # 搜索最大子序列和x 使得可以将原数组拆成m份
+        # 利用红蓝树实现
+        l, r = 0, max(position)+1
+        while l+1 < r:
+            mid = l+r >> 1
+            if not check(mid):
+                r = mid
+            else:
+                l = mid
+        return l
+```
+
+#### problem 287
+
+> 给定一个包含&nbsp;`n + 1` 个整数的数组&nbsp;`nums` ，其数字都在&nbsp;`[1, n]`&nbsp;范围内（包括 `1` 和 `n`），可知至少存在一个重复的整数。
+>
+> 假设 `nums` 只有 **一个重复的整数** ，返回&nbsp;**这个重复的数** 。
+>
+> 你设计的解决方案必须 **不修改** 数组 `nums` 且只用常量级 `O(1)` 的额外空间。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> <pre>**输入：**nums = [1,3,4,2,2]
+> **输出：**2
+> </pre>
+> **示例 2：**
+>
+> <pre>**输入：**nums = [3,1,3,4,2]
+> **输出：**3
+> </pre>
+> **提示：**
+>
+> *   `1 &lt;= n &lt;= 10<sup>5</sup>`
+> *   `nums.length == n + 1`
+> *   `1 &lt;= nums[i] &lt;= n`
+> *   `nums` 中 **只有一个整数** 出现 **两次或多次** ，其余整数均只出现 **一次**
+>
+> **进阶：**
+>
+> *   如何证明 `nums` 中至少存在一个重复的数字?
+> *   你可以设计一个线性级时间复杂度 `O(n)` 的解决方案吗？
+
+**思路分析：**
+
+本题的难点是，不能修改数组，且无法使用额外空间！
+
+一个最常规的思路是快排，`arr[i]==arr[i+1]`就是所求结果。但是不能修改数组，则需要采用二分搜素。
+
+思路转换：搜索一个目标`x`，统计`<=x`数的个数，如果其统计和超过`x`,证明所求结果在`[0:x]`之间。
+
+模板：显然，所有`>=x` 都是正确的，属于该模板。
+
+```python
+class Solution:
+    def findDuplicate(self, nums: List[int]) -> int:
+        n = len(nums)
+        # 检验当前x：统计比<x 的数的个数
+        def check(x):
+            cnt = 0
+            for num in nums:
+                if num <= x:
+                    cnt += 1
+            return True if cnt > x else False
+        # 搜索最大子序列和x 使得可以将原数组拆成m份
+        # 利用红蓝树实现
+        l, r = 0, n
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(mid):
+                r = mid
+            else:
+                l = mid
+        return r
+```
+
+本题还有$O(n)$ 的方法，该方式待补充！
+
+
+
+#### problem 1283
+
+> 给你一个整数数组&nbsp;`nums` 和一个正整数&nbsp;`threshold` &nbsp;，你需要选择一个正整数作为除数，然后将数组里每个数都除以它，并对除法结果求和。
+>
+> 请你找出能够使上述结果小于等于阈值&nbsp;`threshold`&nbsp;的除数中 **最小** 的那个。
+>
+> 每个数除以除数后都向上取整，比方说 7/3 = 3 ， 10/2 = 5 。
+>
+> 题目保证一定有解。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> <pre>**输入：**nums = [1,2,5,9], threshold = 6
+> **输出：**5
+> **解释：**如果除数为 1 ，我们可以得到和为 17 （1+2+5+9）。
+> 如果除数为 4 ，我们可以得到和为 7 (1+1+2+3) 。如果除数为 5 ，和为 5 (1+1+1+2)。
+> </pre>
+>
+> **示例 2：**
+>
+> <pre>**输入：**nums = [2,3,5,7,11], threshold = 11
+> **输出：**3
+> </pre>
+> **示例 3：**
+>
+> <pre>**输入：**nums = [19], threshold = 5
+> **输出：**4
+> </pre>
+>
+> &nbsp;
+>
+> **提示：**
+>
+> *   1 &lt;= nums.length &lt;= 5 * 10^4
+> *   1 &lt;= nums[i] &lt;= 10^6`
+> *   nums.length &lt;=&nbsp;threshold &lt;= 10^6
+
+**思路分析**
+
+本题的目标是找到一个最优目标值`x`，使得数组中每一个数除以`x`以后求和结果`<=threshold`。
+
+显然，可以用二分查找。其中，`x`的范围是`[1,max(nums)]`。
+
+- 二分模板：题目已经明确说了找到最小的`x`，显然任何一个`>=x` 的值都是可行解，对应于`>=x`模板。
+
+```python
+class Solution:
+    def smallestDivisor(self, nums: List[int], threshold: int) -> int:
+        n = len(nums)
+        # 检验当前x：以x为上限切分数组，数组需要切成几段？
+        def check(x):
+            tot = 0
+            for num in nums:
+                tot += (num-1)//x + 1
+            return True if tot <= threshold else False
+        # 搜索最大子序列和x 使得可以将原数组拆成m份
+        # 利用红蓝树实现
+        l, r = 0, max(nums)
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(mid):
+                r = mid
+            else:
+                l = mid
+        return r
+```
 

@@ -22,7 +22,17 @@
 
 例题：`p611, `
 
-## 第一章：二分查找
+## 第一章：基础数据结构
+
+### 1，set -集合
+
+problem 217
+
+### 2，线段树
+
+
+
+## 第二章：二分查找
 
 ### 二分模板
 
@@ -913,3 +923,27 @@ class Solution:
         return r
 ```
 
+## 第三章：图论
+
+### 1，常见算法
+
+#### 1，dfs-深度优先
+
+```python
+class Solution:
+    def floodFill(self, image: List[List[int]], sr: int, sc: int, newColor: int) -> List[List[int]]:
+        if image[sr][sc] != newColor:
+            old, image[sr][sc] = image[sr][sc], newColor
+            for i, j in zip((sr, sr+1, sr, sr-1), (sc+1, sc, sc-1, sc)):
+                if 0 <= i < len(image) and 0 <= j < len(image[0]) and image[i][j] == old:
+                    self.floodFill(image, i, j, newColor)
+        return image
+```
+
+
+
+### 2，练习题目
+
+#### problem 733
+
+#### problem 200

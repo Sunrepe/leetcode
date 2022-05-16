@@ -1,4 +1,5 @@
 from typing import List
+from collections import deque
 
 class Solution1:
     # 通过dfs实现
@@ -33,11 +34,12 @@ class Solution:
         if newColor == old:  # 防止陷入死循环
             return image
         res = [(sr, sc)]
+        image[sr][sc] = newColor
         while res:
             l, r = res.pop()
-            image[l][r] = newColor
             for i, j in [(l, r-1),(l-1, r),(l, r+1), (l+1, r)]:
                 if 0 <= i < len(image) and 0 <= j < len(image[0]) and image[i][j] == old:
+                    image[i][j] = newColor
                     res.append((i,j))
         return image
 
@@ -51,3 +53,7 @@ if __name__ == '__main__':
             image = [[1,1,1],[1,0,0],[1,1,1]], sr = 1, sc = 1, newColor = 2
         )
     )
+    a = [2,3]
+    a.append(4)
+    a.pop()
+    a.insert(0,10)

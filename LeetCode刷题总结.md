@@ -26,7 +26,54 @@
 
 ### 1，set -集合
 
-problem 217
+#### problem 217
+
+#### problem 1
+
+> 给定一个整数数组 `nums`&nbsp;和一个整数目标值 `target`，请你在该数组中找出 **和为目标值 **_`target`_&nbsp; 的那&nbsp;**两个**&nbsp;整数，并返回它们的数组下标。
+>
+> 你可以假设每种输入只会对应一个答案。但是，数组中同一个元素在答案里不能重复出现。
+>
+> 你可以按任意顺序返回答案。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> > **输入：**nums = [2,7,11,15], target = 9
+> > **输出：**[0,1]
+> > **解释：**因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
+>
+> **易错示例 2：**
+>
+> > **输入：**nums = [3, 3], target = 6
+> > **输出：**[0,1]
+>
+> **提示：**
+>
+> *   2 &lt;= nums.length &lt;= 10<sup>4</sup>
+> *   -10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup>
+> *   -10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup>
+> *   **只会存在一个有效答案**
+
+**思路分析：**
+
+- `O(N)`的方法，只要使用hash方法，枚举`num`时，查找是否存在`hash(target-num)`即可
+- *细节*：首先创建空哈希表，对于每一个 `x`，我们首先查询哈希表中是否存在 `target - x`，然后将 `x` 插入到哈希表中，即可保证不会让 `x` 和自己匹配。
+
+```python
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        cmp = set()
+        for i in range(len(nums)):
+            if target-nums[i] in cmp:
+                return [nums.index(target-nums[i]), i]
+            cmp.add(nums[i])
+```
+
+
+
+
 
 ### 2，线段树
 
@@ -154,6 +201,8 @@ while l+1 != r:
 
 ##### 问题2：最大值最小化 **Hard**
 
+- `>=x`模板
+
 - 原始：分割数组最大值最小化；给定一个非负整数数组 `nums` 和一个整数&nbsp;`m` ，你需要将这个数组分成&nbsp;`m`_&nbsp;_个非空的连续子数组。设计一个算法使得这&nbsp;`m`_&nbsp;_个子数组各自和的最大值最小。详见 `p410`
 
 
@@ -161,6 +210,8 @@ while l+1 != r:
 - 进阶：将数组里的数切割，使得数组大小变为`N + M`份；详见 `p1760`
 
 ##### 问题3：最小值最大化 **Hard**
+
+- `<=x`模板
 
 - 原始：将一个数组`array`分成`m`段，使得每段之间的距离的最小值最大化。详见`p1552`
 
@@ -233,7 +284,7 @@ class Solution:
         return res
 ```
 
-#### problem 658
+#### problem 658  **try**
 
 > 给定一个 **排序好** 的数组&nbsp;`arr` ，两个整数 `k` 和 `x` ，从数组中找到最靠近 `x`（两数之差最小）的 `k` 个数。返回的结果必须要是按升序排好的。
 >
@@ -250,7 +301,70 @@ class Solution:
 >
 > `输入：arr = [1,2,2,2,2,2,2,3,3], k = 3, x = 3；输出：[2,3,3]`
 
-#### problem 300
+**思路1**：较复杂
+
+- 找到最接近x的数：对于排序好的数组，遍历一次是O(n)的方法，但是还有更简单的的直接`o(log n)`的二分查找。
+
+- `k`个数定位：根据找到的最优`x`，向两次扩散`k`个数即可
+
+  ```python
+  class Solution:
+      def findClosestElements(self, arr: List[int], k: int, x: int) -> List[int]:
+          length = len(arr)
+  
+          # 二分找到最接近x的数
+          l, r = 0, len(arr) - 1
+          while (l < r):
+              mid = int((l + r) / 2)
+              if (abs(x - arr[mid]) > abs(x - arr[mid + 1]) or (arr[mid]==arr[mid+1] and arr[mid] < x) ):
+                  l = mid + 1
+              else:
+                  r = mid
+  
+          # 双指针从中间向两边遍历
+          a,b = r,r
+          k -= 1
+          while(k>0):
+              if a == 0:
+                  b += 1
+                  k -= 1
+              elif b == length-1:
+                  a -= 1
+                  k -= 1
+  
+              elif(abs(x-arr[a-1]) <= abs(x-arr[b+1])):
+                  a -= 1
+                  k -= 1
+  
+              else:
+                  b += 1
+                  k -= 1
+          return arr[a:b+1]
+  ```
+
+**思路2：两侧删除**
+
+由于最后目标是保留k个最接近`x`的数，一个很直观的方法就是，从两侧删除离`x`比较远的数，删去`n-k`个，剩下的就是答案！
+
+```python
+class Solution:
+    def findClosestElements(self, arr: List[int], k: int, x: int) -> List[int]:
+        length = len(arr)
+        for i in range(length-k):
+            if x-arr[0] > arr[-1]-x:
+                del arr[0]
+            else:
+                del arr[-1]
+        return arr
+```
+
+
+
+思路3：
+
+
+
+
 
 > 给你一个整数数组 `nums` ，找到其中最长严格递增子序列的长度。
 >
@@ -923,22 +1037,335 @@ class Solution:
         return r
 ```
 
+#### problem 1898
+
+> 给你两个字符串 `s` 和 `p` ，其中 `p` 是 `s` 的一个 **子序列** 。同时，给你一个元素 **互不相同** 且下标 **从 0 开始** 计数的整数数组&nbsp;`removable` ，该数组是 `s` 中下标的一个子集（`s` 的下标也 **从 0 开始** 计数）。
+>
+> 请你找出一个整数 `k`（`0 &lt;= k &lt;= removable.length`），选出&nbsp;`removable` 中的 **前** `k` 个下标，然后从 `s` 中移除这些下标对应的 `k` 个字符。整数 `k` 需满足：在执行完上述步骤后， `p` 仍然是 `s` 的一个 **子序列** 。更正式的解释是，对于每个 `0 &lt;= i &lt; k` ，先标记出位于 `s[removable[i]]` 的字符，接着移除所有标记过的字符，然后检查 `p` 是否仍然是 `s` 的一个子序列。
+>
+> 返回你可以找出的 **最大**_ _`k`_ _，满足在移除字符后_ _`p`_ _仍然是 `s` 的一个子序列。
+>
+> 字符串的一个 **子序列** 是一个由原字符串生成的新字符串，生成过程中可能会移除原字符串中的一些字符（也可能不移除）但不改变剩余字符之间的相对顺序。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> <pre>**输入：**s = "abcacb", p = "ab", removable = [3,1,0]
+> **输出：**2
+>
+> **解释：**在移除下标 3 和 1 对应的字符后，"a**b**c**a**cb" 变成 "accb" 。
+>
+> "ab" 是 "**a**cc**b**" 的一个子序列。
+> 如果移除下标 3、1 和 0 对应的字符后，"**ab**c**a**cb" 变成 "ccb" ，那么 "ab" 就不再是 s 的一个子序列。
+> 因此，最大的 k 是 2 。
+>
+> **提示：**
+>
+> *   1 &lt;= p.length &lt;= s.length &lt;= 10<sup>5</sup>`
+> *   0 &lt;= removable.length &lt; s.length`
+> *   0 &lt;= removable[i] &lt; s.length`
+> *   `p` 是 `s` 的一个 **子字符串**
+> *   `s` 和 `p` 都由小写英文字母组成
+> *   `removable` 中的元素 **互不相同**
+
+- 模板：本题是二分的`<=x`模板，即找到最大的满足题目要求的`x`。
+
+- 细节：进行`check(x)`时，对于移除元素的查找可以使用`set()`，从而实现`O(1)`复杂度查找
+
+```python
+class Solution:
+    def maximumRemovals(self, s: str, p: str, removable: List[int]) -> int:
+        p += 'I'
+        def check(s, x):
+            ch = set(removable[0:x])  # 利用set 查找复杂度为O(1)
+            cnt = 0
+            for i in range(len(s)):
+                if s[i] == p[cnt] and i not in ch:
+                    cnt += 1
+            return True if cnt > len(p)-2 else False
+        l, r = -1, len(removable)+1
+        while l+1 < r:
+            mid = l+r >> 1
+            if check(s, mid):
+                l = mid
+            else:
+                r = mid
+        return l
+```
+
+#### problem 1870 **Hard** <u>?</u>  
+
+> 给你一个浮点数 `hour` ，表示你到达办公室可用的总通勤时间。要到达办公室，你必须按给定次序乘坐 `n` 趟列车。另给你一个长度为 `n` 的整数数组 `dist` ，其中 `dist[i]` 表示第 `i` 趟列车的行驶距离（单位是千米）。
+>
+> 每趟列车均只能在整点发车，所以你可能需要在两趟列车之间等待一段时间。
+>
+> *   例如，第 `1` 趟列车需要 `1.5` 小时，那你必须再等待 `0.5` 小时，搭乘在第 2 小时发车的第 `2` 趟列车。
+>
+> 返回能满足你准时到达办公室所要求全部列车的** 最小正整数 **时速（单位：千米每小时），如果无法准时到达，则返回 `-1` 。
+>
+> 生成的测试用例保证答案不超过 10<sup>7</sup> ，且 `hour` 的 **小数点后最多存在两位数字** 。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> > **输入：**dist = [1,3,2], hour = 6
+> > **输出：**1
+> > **解释：**速度为 1 时：
+> > - 第 1 趟列车运行需要 1/1 = 1 小时。
+> > - 由于是在整数时间到达，可以立即换乘在第 1 小时发车的列车。第 2 趟列车运行需要 3/1 = 3 小时。
+> > - 由于是在整数时间到达，可以立即换乘在第 4 小时发车的列车。第 3 趟列车运行需要 2/1 = 2 小时。
+> > - 你将会恰好在第 6 小时到达。
+>
+> **<u>易错示例</u> 2：**
+>
+> > **输入：**dist = [1,1,10], hour = 2.01
+> > **输出：**3
+> > **解释：**速度为 3 时：
+> > - 第 1 趟列车运行需要 1/3 = 0.33333 小时。
+> > - 由于不是在整数时间到达，故需要等待至第 1 小时才能搭乘列车。第 2 趟列车运行需要 3/3 = 1 小时。
+> > - 由于是在整数时间到达，可以立即换乘在第 2 小时发车的列车。第 3 趟列车运行需要 2/3 = 0.66667 小时。
+> > - 你将会在第 2.66667 小时到达。
+
+- 模板分析：本题求最小值，显然对应于`>=x`模板。
+
+- **难点说明**：浮点数的比较大小。
+
+  如易错示例2，对于直接利用python取整计算`math.ceil(10/(2.01-2))=1001`而非目标值`1000`
+
+  如何直接修正取整计算问题，目前尚无可靠思路[^问题标记]
+
+  一个合理的解决方案：[参考](https://leetcode.cn/problems/minimum-speed-to-arrive-on-time/solution/5764zhun-shi-dao-da-de-lie-che-zui-xiao-phes3/)
+
+  - 对最后一位特殊处理：`check(x)`时，对前`n-1`位正常取整，最后只算其浮点数结果，进而与目标值`hour`进行比较。
+
+  - `x`范围变化：由于题目中保证了`hour`最多两位小数，细分度为`0.01`；
+
+    所以正确结果`x`一定属于`[1, max(dist)*100]`，即二分的搜索区间。
+
+- python整数相除取整算法：
+
+  向下取整：`被除数 // 除数`
+
+  向上取整：`(被除数 + 除数 - 1) // 除数`
+
+#### problem 1482
+
+> 给你一个整数数组 `bloomDay`，以及两个整数 `m` 和 `k` 。
+>
+> 现需要制作 `m` 束花。制作花束时，需要使用花园中 **相邻的 `k` 朵花** 。
+>
+> 花园中有 `n` 朵花，第 `i` 朵花会在 `bloomDay[i]` 时盛开，**恰好** 可以用于 **一束** 花中。
+>
+> 请你返回从花园中摘 `m` 束花需要等待的最少的天数。如果不能摘到 `m` 束花则返回 **-1** 。
+>
+> **示例 1：**
+>
+> > **输入：**bloomDay = [7,7,7,7,12,7,7], m = 2, k = 3
+> > **输出：**12
+> > **解释：**要制作 2 束花，每束需要 3 朵。
+> > 花园在 7 天后和 12 天后的情况如下：
+> > 7 天后：[x, x, x, x, _, x, x]
+> > 可以用前 3 朵盛开的花制作第一束花。但不能使用后 3 朵盛开的花，因为它们不相邻。
+> > 12 天后：[x, x, x, x, x, x, x]
+> > 显然，我们可以用不同的方式制作两束花。
+>
+>
+> 
+>
+> **提示：**
+>
+> *   bloomDay.length == n
+> *   1 &lt;= n &lt;= 10^5
+> *   1 &lt;= bloomDay[i] &lt;= 10^9
+> *   1 &lt;= m &lt;= 10^6
+> *   1 &lt;= k &lt;= n
+
+**思路分析**：
+
+本题是求解一个最优值`x`使得，在数组中连续`<=x` 的序列串`>=m`。
+
+- 二分模板：对于一个最优`x`，显然所有`>=x` 的值都是正确的，对应于`>=x`模板
+
+```python
+class Solution:
+    def minDays(self, bloomDay: List[int], m: int, k: int) -> int:
+        l, r = 0, max(bloomDay)+1
+        while l+1 < r:
+            mid = l+r >> 1
+            cnt, seq = 0, 0
+            for day in bloomDay:
+                if day <= mid:
+                    seq += 1
+                else:
+                    seq = 0
+                if seq == k:
+                    cnt += 1
+                    seq = 0
+            if cnt >= m:
+                r = mid
+            else:
+                l = mid
+        return -1 if r == max(bloomDay)+1 else r
+```
+
+#### problem 1818 **Hard**
+
+> 给你两个正整数数组 `nums1` 和 `nums2` ，数组的长度都是 `n` 。
+>
+> 数组 `nums1` 和 `nums2` 的 **绝对差值和** 定义为所有 `|nums1[i] - nums2[i]|`（0 &lt;= i &lt; n）的 **总和**（**下标从 0 开始**）。
+>
+> 你可以选用 `nums1` 中的 **任意一个** 元素来替换 `nums1` 中的 **至多** 一个元素，以 **最小化** 绝对差值和。
+>
+> 在替换数组 `nums1` 中最多一个元素 **之后** ，返回最小绝对差值和。因为答案可能很大，所以需要对 10<sup>9</sup> + 7 **取余 **后返回。
+>
+> 
+>
+> **示例 1：**
+>
+> > **输入：**nums1 = [1,7,5], nums2 = [2,3,5]
+> > **输出：**3
+> > **解释：**有两种可能的最优方案：
+> >
+> > - 将第二个元素替换为第一个元素：[1,**7**,5] =&gt; [1,**1**,5] ，或者
+> > - 将第二个元素替换为第三个元素：[1,**7**,5] =&gt; [1,**5**,5]
+> > 两种方案的绝对差值和都是 `|1-2| + (|1-3| 或者 |5-3|) + |5-5| = `3
+>
+> **示例 2：**
+>
+> > **输入：**nums1 = [1,10,4,4,2,7], nums2 = [9,3,5,1,7,4]
+> > **输出：**20
+> > **解释：**将第一个元素替换为第二个元素：[**1**,10,4,4,2,7] =&gt; [**10**,10,4,4,2,7]
+> > 绝对差值和为 `|10-9| + |10-3| + |4-5| + |4-1| + |2-7| + |7-4| = 20`
+>
+>
+> &nbsp;
+>
+> **提示：**
+>
+> *   n == nums1.length
+> *   n == nums2.length
+> *   1 &lt;= n &lt;= 10<sup>5</sup>
+> *   1 &lt;= nums1[i], nums2[i] &lt;= 10<sup>5</sup>
+
+
+
 ## 第三章：图论
 
 ### 1，常见算法
 
-#### 1，dfs-深度优先
+#### 1，dfs、bfs
+
+##### **dfs+栈实现：**
+
+- 在python中，可以使用列表`list`实现`栈`、`队列`两种数据结构。
+
+  - 实现`stack`：`a.append(s),    a.pop()`
+  - 实现`queue`：`a.insert(0, s), a.pop()`
+  - 对于复杂场景，建议使用`collections.deque`； *注意：*LeetCode编译器已导入`collections`包
+
+- <u>技巧</u>：防止重复统计
+
+  有两种方式可以实现防止重复统计，一是提前修改已访问标志，再加入栈；二是在每次统计前判断是否已修改。
+
+- **推荐实现1**：确保每个位置只访问一次
+
+  `实现1`的核心在于`# 入栈立即修改已访问标志`和`# 判断可访问条件`
+
+  ```python
+  if grid[i][j] == target:
+      a = [(i, j)]    
+      grid[i][j] = new	# 入栈立即修改已访问标志
+      while a:
+          sr, sc = a.pop()
+          cnt += 1
+          for l, r in zip((sr - 1, sr, sr + 1, sr), (sc, sc - 1, sc, sc + 1)):
+              if 0 <= l < len(grid) and 0 <= r < len(grid[0]) and grid[l][r] == target:	# 判断可访问条件
+                  a.append((l, r))                
+                  grid[l][r] = new	# 入栈立即修改已访问标志
+      maxn = max(maxn, cnt)
+  ```
+
+- 常规实现2：统计前判断
+
+  ```python
+  if grid[i][j] == target:
+      stack = [(i, j)]
+      while stack:
+          cur_i, cur_j = stack.pop()
+          if cur_i < 0 or cur_j < 0 or cur_i == len(grid) or cur_j == len(grid[0]) \
+                  or grid[cur_i][cur_j] != 1:
+              continue					# 统计前判断，不符合条件则跳过不统计
+          cur += 1
+          grid[cur_i][cur_j] = new
+          for di, dj in [[0, 1], [0, -1], [1, 0], [-1, 0]]:
+              next_i, next_j = cur_i + di, cur_j + dj
+              stack.append((next_i, next_j))
+      ans = max(ans, cur)
+  ```
+
+##### **bfs+队列实现:**
+
+有了dfs栈实现的基础，bfs过程就只需要将其中的数据结构stack 改成 `collections.deque`即可！
+
+- `collections.deque`说明
+  - `deque(a)`初始化要求`a`必须可迭代，如`a=[1]`可行
+  - 和`list`类似，`append(num)`、`pop()`都只对末端处理。
+  - 在首端插入用`insert(index, num)`，首端出队列用`popleft()`
+  - 先进先出队列采用`append()`、`popleft()`组合实现
+
+```python
+if grid[i][j] == target:
+    q = collections.deque([(i, j)])    
+    grid[i][j] = new	# 入队列立即修改已访问标志
+    while a:
+        sr, sc = a.popleft()
+        cnt += 1
+        for l, r in zip((sr - 1, sr, sr + 1, sr), (sc, sc - 1, sc, sc + 1)):
+            if 0 <= l < len(grid) and 0 <= r < len(grid[0]) and grid[l][r] == target:	# 判断可访问条件
+                a.append((l, r))              
+                grid[l][r] = new	# 入队列立即修改已访问标志
+    maxn = max(maxn, cnt)
+```
+
+
+
+##### **dfs 递归实现：**
+
+实现递归的关键有：
+
+- <u>递归终止条件</u>
+
+  对于本题而言，将不满足要求的情况设置为终止，并返回 0。
+
+- 递归的结果一般都以`ans += bfs()` 呈现，以此计算整个过程的所有结果。
 
 ```python
 class Solution:
-    def floodFill(self, image: List[List[int]], sr: int, sc: int, newColor: int) -> List[List[int]]:
-        if image[sr][sc] != newColor:
-            old, image[sr][sc] = image[sr][sc], newColor
-            for i, j in zip((sr, sr+1, sr, sr-1), (sc+1, sc, sc-1, sc)):
-                if 0 <= i < len(image) and 0 <= j < len(image[0]) and image[i][j] == old:
-                    self.floodFill(image, i, j, newColor)
-        return image
+    def bfs(self, grid, x, y, target, new):
+        m, n = len(grid), len(grid[0])
+        if x<0 or x>=m or y<0 or y>=n or grid[x][y]!=target: # 递归终止条件，核心难点！
+            return 0 
+        ans = 1
+        grid[x][y] = new
+        for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+            ans += self.bfs(grid, ii, jj, target, new)
+        return ans
+    
+    def maxAreaOfIsland(self, grid: List[List[int]]) -> int:
+        # dfs
+        target, new = 1, 0
+        m, n = len(grid), len(grid[0])
+        maxn = 0
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == target:
+                    maxn = max(maxn, self.bfs(grid, i, j, target, new))
+        return maxn
 ```
+
+*说明*：递归算法思路比较清晰，但是递归过程往往耗费时间空间都较大，而且递归理解难度更大，所以并不推荐写递归`dfs`;更值得研究也更简单的是通过`栈`实现，而且将其改为`队列`后，可以快速实现`bfs`!
 
 
 
@@ -947,3 +1374,79 @@ class Solution:
 #### problem 733
 
 #### problem 200
+
+#### problem 695
+
+#### problem 1253
+
+#### problem 1162
+
+> 你现在手里有一份大小为&nbsp;`n x n`&nbsp;的 网格 `grid`，上面的每个 单元格 都用&nbsp;`0`&nbsp;和&nbsp;`1`&nbsp;标记好了。其中&nbsp;`0`&nbsp;代表海洋，`1`&nbsp;代表陆地。
+>
+> 请你找出一个海洋单元格，这个海洋单元格到离它最近的陆地单元格的距离是最大的，并返回该距离。如果网格上只有陆地或者海洋，请返回&nbsp;`-1`。
+>
+> 我们这里说的距离是「曼哈顿距离」（&nbsp;Manhattan Distance）：`(x0, y0)` 和&nbsp;`(x1, y1)`&nbsp;这两个单元格之间的距离是&nbsp;`|x0 - x1| + |y0 - y1|`&nbsp;。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> **![](.\images\1336_ex2.jpeg)**
+>
+> > **输入：**grid = [[1,0,0],[0,0,0],[0,0,0]]
+> > **输出：**4
+> > **解释： **
+> > 海洋单元格 (2, 2) 和所有陆地单元格之间的距离都达到最大，最大距离为 4。
+>
+>
+> &nbsp;
+>
+> **提示：**
+>
+> *   n == grid.length
+> *   n == grid[i].length
+> *   1 &lt;= n&nbsp;&lt;= 100
+> *   `grid[i][j]`&nbsp;不是&nbsp;`0`&nbsp;就是&nbsp;`1`
+
+**思路分析：**
+
+这是`Tree的bfs`拓展版：从一个源点出发，每次向`上下左右`4个方向扩散。
+
+- 注意：每次都只能扩散`上下左右`4个方向，这样可以保证每次曼哈顿距离是递增的。
+
+- <u>核心技巧</u>：如果采用扫描每个可行源点，然后`bfs`扩散找到最近的陆地；这样的方法涉及了很多冗余计算！
+
+  [参考](https://leetcode.cn/problems/as-far-from-land-as-possible/solution/jian-dan-java-miao-dong-tu-de-bfs-by-sweetiee/)：
+
+  只要先把所有的陆地都入队，然后从各个陆地同时开始一层一层的向海洋扩散，*那么最后扩散到的海洋就是最远的海洋*！
+  下面是扩散的图示，1表示陆地，0表示海洋。每次扩散的时候会标记相邻的4个位置的海洋：
+
+  ![](.\images\ludihaiyang.png)
+
+  > 你可以想象成你从每个陆地上派了很多支船去踏上伟大航道，踏遍所有的海洋。每当船到了新的海洋，就会分裂成4条新的船，向新的未知海洋前进（访问过的海洋就不去了）。如果船到达了某个未访问过的海洋，那他们是第一个到这片海洋的。很明显，这么多船最后访问到的海洋，肯定是离陆地最远的海洋。
+
+  **最后出队列的是最优结果！**
+
+  ```python
+  class Solution:
+      def maxDistance(self, grid: List[List[int]]) -> int:
+          n = len(grid)
+          a = collections.deque()
+          # 所有陆地先入队
+          for i in range(n):
+              for j in range(n):
+                  if grid[i][j]==1:
+                      a.append((i,j,0))
+          # 在曼哈顿距离下，入队只能是以距离为1 扩散
+          ans = -1
+          while a:
+              x, y, ans = a.popleft()
+              for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+                  if 0 <= ii < n and 0 <= jj < n and grid[ii][jj]==0:
+                      grid[ii][jj] = 1
+                      a.append((ii,jj, ans+1))                    
+          return -1 if ans<=0 else ans
+  ```
+
+  
+

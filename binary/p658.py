@@ -1,29 +1,20 @@
 from typing import List
 
-MAXN = 2e9
-
-def pri(i,j,l,nums):
-    for t in range(j+1,l+1):
-            print(nums[i], nums[j], nums[t])
-
-
-def find_near(arr,x ):
-    l, r = 0, len(arr) - 1
-    # 二分找到最接近x的数
-    while (l < r):
-        mid = int((l + r) / 2)
-        if (abs(x - arr[mid]) <= abs(x - arr[mid + 1])):
-            r = mid
-        else:
-            l = mid + 1
-    # minx = abs(x-arr[0])
-    # res = 0
-    # for i in range(len(arr)):
-    #     if minx > abs(x-arr[i]):
-
-
 
 class Solution:
+    def findClosestElements(self, arr, k, x):
+        left = 0
+        right = len(arr) - k - 1
+        while (left <= right) :
+            mid = left+right >> 1
+            if (x - arr[mid] > arr[mid + k] - x) :
+                left = mid + 1
+            else :
+                right = mid - 1
+        return arr[left : left + k]
+
+
+class Solution1:
     def findClosestElements(self, arr: List[int], k: int, x: int) -> List[int]:
         length = len(arr)
 

@@ -24,9 +24,7 @@
 
 ## 第一章：基础数据结构
 
-### 1，set -集合
-
-#### problem 217
+### 1，set - 集合
 
 #### problem 1
 
@@ -71,11 +69,82 @@ class Solution:
             cmp.add(nums[i])
 ```
 
-
+#### problem 217
 
 
 
 ### 2，线段树
+
+### 3，cluster - 并查集 
+
+[参考来源：花花酱](https://www.youtube.com/watch?v=VJnUwsE4fWA&ab_channel=HuaHua)
+
+在图论中，连通块可以用`并查集`来维护。
+
+- 核心算法
+
+  - `Find(x)`: 找到`root/cluster-id`, 不断沿着路径寻根
+  - `Union(x, y)`： 将两个`cluster` 合并
+
+- 复杂度
+
+  - `Find(x)`：$O(\alpha(N))^*\approx O(1)  $
+  - `Union(x, y)`：$O(\alpha(N))^*\approx O(N)  $
+  - 空间复杂度：$O(N)$
+
+- 两个核心优化技巧
+
+  - **路径压缩**：采用递归实现
+
+    第一次搜索的时候，将路径上所有节点的父节点全部改成`root`
+
+    <img src=".\images\image-20220516210002292.png" alt="image-20220516210002292" style="zoom: 50%;" />
+
+  - **Union by Rank**：
+
+    `Rank`一般指混乱度，含义接近于树的高度。把rank低的合并到rank高的树上。
+
+    ![](.\images\Snipaste_2022-05-16_21-04-20.png)
+
+  - 伪代码
+
+    
+
+**problem 1020**
+
+本题更简单快速的做法是直接`bfs`,详见图论中该题解法。
+
+此处列出大致伪代码
+
+```python
+class UnionFind:
+    def __init__(self, grid: List[List[int]]):
+        m, n = len(grid), len(grid[0])
+        self.parent = [0] * (m * n)  # 有几个节点就要形成几个长度，告知并查集的可能长度
+        self.rank = [0] * (m * n)
+
+    def find(self, x: int) -> int:
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def merge(self, x: int, y: int) -> None:
+        x, y = self.find(x), self.find(y)
+        if x == y:
+            return
+        if self.rank[x] > self.rank[y]:
+            self.parent[y] = x
+            self.onEdge[x] |= self.onEdge[y]
+        elif self.rank[x] < self.rank[y]:
+            self.parent[x] = y
+            self.onEdge[y] |= self.onEdge[x]
+        else:
+            self.parent[y] = x
+            self.onEdge[x] |= self.onEdge[y]
+            self.rank[x] += 1
+```
+
+
 
 
 
@@ -199,7 +268,37 @@ while l+1 != r:
 
   - 找到 `<=x` 的最后一个数，条件设为 `nums[mid] <= x`， 返回`r-1`
 
-##### 问题2：最大值最小化 **Hard**
+##### 问题2：最接近目标值`x`
+
+- 在已排序数组中找到最接近目标值`x`的数。
+
+- 红蓝划分模板。思路和找等于`x`的数一样：如果数组中没有和`！x`相等的数，找到的一定是最接近的数。
+
+  但是此时，需要讨论分别`l、r`的最优性，以及要区分是否找到！
+
+  ```python
+  l, r = -1, n
+  while l + 1 < r:
+      mid = l + r >> 1
+      if ns[mid] < nums2[i]:
+          l = mid
+      else:
+          r = mid
+  res = None
+  if l == -1:
+      res = r
+  elif r == n:
+      res = l
+  elif abs(nums2[i] - ns[l]) <= abs(nums2[i] - ns[r]):
+      res = l
+  else:
+      res = r
+  # res 为所求结果的下标。在实际应用中可以简化这个过程。
+  ```
+
+  
+
+##### 问题3：最大值最小化
 
 - `>=x`模板
 
@@ -209,11 +308,16 @@ while l+1 != r:
 - 进阶：给定一个数组，将其划分成 `M` 份，使得每份元素之和最大值最小，每份可以任意减去其中一个元素。详见 `LCP 12`
 - 进阶：将数组里的数切割，使得数组大小变为`N + M`份；详见 `p1760`
 
-##### 问题3：最小值最大化 **Hard**
+##### 问题4：最小值最大化 
 
 - `<=x`模板
 
 - 原始：将一个数组`array`分成`m`段，使得每段之间的距离的最小值最大化。详见`p1552`
+
+##### 问题5：二维搜索
+
+- 原始数组是二维数组，在每行每列上都保持有序关系！
+- 
 
 ### 练习题目
 
@@ -347,24 +451,52 @@ class Solution:
 由于最后目标是保留k个最接近`x`的数，一个很直观的方法就是，从两侧删除离`x`比较远的数，删去`n-k`个，剩下的就是答案！
 
 ```python
-class Solution:
-    def findClosestElements(self, arr: List[int], k: int, x: int) -> List[int]:
-        length = len(arr)
-        for i in range(length-k):
-            if x-arr[0] > arr[-1]-x:
-                del arr[0]
+# Delete the the farther one of leftmost side and rightmost side element until k left
+class Solution(object):
+    def findClosestElements(self, arr, k, x):
+        nums = deque()
+        for i in arr:
+            nums.append(i)
+
+        while (len(nums) > k):
+            if (abs(nums[0] - x) > abs(nums[-1] - x)):
+                nums.popleft()
             else:
-                del arr[-1]
-        return arr
+                nums.pop()
+
+        res = []
+        for i in nums:
+            res.append(i) 
+        return res
 ```
 
+*说明*：如果直接使用列表删除，复杂度较高，因为每次删除都是`O(n)`复杂度，所以应该转化为双端队列进行删除！
+
+**思路3：二分找k**
+
+由于需要保留的是`k`个连续结果，所以把连续`k`个数看成整体`I`，比较整体的第一个数`I[0]`和`I`后的第一个数`t`与最优结果的距离：
+
+- 若满足`I<=t` 则更新`r`; 否则更新`l`；显然，最后结果在`l`。
+
+  ```python
+  class Solution:
+      def findClosestElements(self, arr, k, x):
+          left = 0
+          right = len(arr) - k - 1
+          while (left <= right) :
+              mid = left+right >> 1
+              if (x - arr[mid] > arr[mid + k] - x) :
+                  left = mid + 1
+              else :
+                  right = mid - 1
+          return arr[left : left + k]
+  ```
+
+  红蓝划分版本的这个形式，还需要进一步思考待定！
 
 
-思路3：
 
-
-
-
+#### problem 300
 
 > 给你一个整数数组 `nums` ，找到其中最长严格递增子序列的长度。
 >
@@ -1249,13 +1381,191 @@ class Solution:
 > *   1 &lt;= n &lt;= 10<sup>5</sup>
 > *   1 &lt;= nums1[i], nums2[i] &lt;= 10<sup>5</sup>
 
+**解决思路**：
 
+由于只能替换`nums1`中的一个数，并在替换该数过程中，实现数组绝对值之差最小化；显然，应该选择替换后可以获得最大改变的一组`nums1[i]`和`nums2[i]`进行替换。
+
+- <u>核心思路</u>：遍历所有`i`，找到进行替换可以获得最大收益的一项。
+  - 最大收益即可以最大程度降低`nums1[k]`和`nums2[k]`之间的差。
+  - 举例，对于`1`和`7`，他们之间的差距是6，如果在第一个数组中可以找到一个新的数`5`，替换掉`1`，则差距变为2，那么收益就是`6-2=4`。
+  - 找这个最大的差异可以用排序好的辅助数组`new1`；在枚举`i`时，在`new1`中找到最接近`nums2[i]`的数，显然采用这个最接近的数替换原来的`nums1[i]`可以获得当前项`i`的最佳收益。
+  - 遍历时，再增加一个辅助变量`max_change`记录当前为止的最佳收益。以确保收益始终最大！
+
+```python
+class Solution:
+    def minAbsoluteSumDiff(self, nums1: List[int], nums2: List[int]) -> int:
+        n = len(nums1)
+        ns = sorted(nums1)
+        tot, max_change = 0, 0
+        for i in range(n):
+            diff = abs(nums2[i]-nums1[i])
+            tot += diff
+            if not diff:
+                continue
+            l, r = -1, n
+            while l + 1 < r:
+                mid = l + r >> 1
+                if ns[mid] <= nums2[i]:
+                    l = mid
+                else:
+                    r = mid
+            if l != -1: # 检查l
+                max_change = max(max_change, diff - (nums2[i] - ns[l]))
+            if r != n:
+                max_change = max(max_change, diff - (ns[r] - nums2[i]))
+        mod = (10 ** 9 + 7)
+        return (tot-max_change+mod) % mod
+```
+
+#### problem 240 **good**
+
+> *二维搜索问题*
+>
+> 编写一个高效的算法来搜索$m\times n$&nbsp;矩阵 `matrix` 中的一个目标值 `target` 。该矩阵具有以下特性：
+>
+> *   每行的元素从左到右升序排列。
+> *   每列的元素从上到下升序排列。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> ![](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/11/25/searchgrid2.jpg)
+> > **输入：**matrix = [[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]], target = 5
+> > **输出：**true
+>
+> **提示：**
+>
+> *   m == matrix.length
+> *   n == matrix[i].length
+> *   1 &lt;= n, m &lt;= 300
+> *   -10<sup>9</sup>&nbsp;&lt;= matrix[i][j] &lt;= 10<sup>9</sup>
+> *   每行的所有元素从左到右升序排列
+> *   每列的所有元素从上到下升序排列
+
+思路1：
+
+常规思路是按行或者按列进行二分搜索，复杂度为`O(m log n)`或者`O(n log m)`
+
+实现较为简单：
+
+**思路2**：从右上角开始单调扫描
+
+![](.\images\二维搜索.png)
+
+显然，根据左图可以看到二维数组有一些鲜明的特征，所以可以快速排除某一行或者某一列。
+
+因此我们可以从整个矩阵的右上角开始枚举，假设当前枚举的数是 x：
+
+- 如果 x 等于target，则说明我们找到了目标值，返回true；
+- 如果 x小于target，则 x左边的数一定都小于target，我们可以直接排除当前一整行的数；
+- 如果 x 大于target，则 x 下边的数一定都大于target，我们可以直接排除当前一整列的数；
+
+复杂度显然为`O(m+n)`
+
+实现：
+
+```python
+class Solution:
+    def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:
+        m, n = len(matrix), len(matrix[0])
+        l, r = 0, n-1
+        while l<m and r>-1:
+            if matrix[l][r] == target:
+                return True
+            elif matrix[l][r] < target:
+                l += 1
+            else:
+                r -= 1
+        return False
+```
+
+
+
+#### problem 1838 **good**
+
+
+
+注意：如果使用常规二分思路，本题的`check(x)`比较难算，且复杂度较高，无法在$O(N)$时间内完成。
+
+思路：排序+滑动窗口
+
+[参考：](https://leetcode.cn/problems/frequency-of-the-most-frequent-element/solution/1838-zui-gao-pin-yuan-su-de-pin-shu-shua-ub57/)
+
+<img src=".\images\Snipaste_2022-05-18_12-23-31.png" style="zoom:50%;" />
+
+首先对原始数据排序，可操作性次数`k`相当于图中的颜色部分面积和；使用双指针始终维持该面积`<=k`，只需要从头到位遍历一次，并求出过程中`l-r+1`的最大值，就是本题的目标值。
+
+- 增加面积按行实现
+- 减少面积是按列的
+
+```python
+class Solution:
+    def maxFrequency(self, nums: List[int], k: int) -> int:
+        nums.sort()
+        n = len(nums)
+        tot, ans = 0, 1
+        l, r = 0, 1
+        while r<n:
+            tot += (nums[r]-nums[r-1]) * (r-l)   # 按行增加面积
+            while tot > k:
+                tot -= (nums[r]-nums[l])    # 按列介绍面积
+                l += 1
+            ans = max(ans, r-l+1)
+            r += 1
+        return ans
+```
+
+#### problem 540
+
+> 给你一个仅由整数组成的有序数组，其中每个元素都会出现两次，唯有一个数只会出现一次。
+>
+> 请你找出并返回只出现一次的那个数。
+>
+> 你设计的解决方案必须满足 `O(log n)` 时间复杂度和 `O(1)` 空间复杂度。
+>
+> &nbsp;
+>
+> **示例 1:**
+>
+> > **输入:** nums = [1,1,2,3,3,4,4,8,8]
+> > **输出:** 2
+
+思路：
+初始时，二分查找的左边界是 00，右边界是数组的最大下标。每次取左右边界的平均值 mid 作为待判断的下标，根据 mid 的奇偶性决定和左边或右边的相邻元素比较：
+
+- 如果mid 是偶数，则比较`nums[mid]` 和`nums[mid+1]` 是否相等；
+
+
+- 如果 mid 是奇数，则比较`nums[mid−1] `和 `nums[mid] `是否相等。
+
+**技巧：**
+
+对于分奇数偶数讨论的问题，可以利用`按位异或`解决。
+
+- 如果mid 是偶数，$mid +1 = mid \bigotimes 1$
+
+- 如果 mid 是奇数，$mid-1 = mid \bigotimes 1$
+
+```python
+class Solution:
+    def singleNonDuplicate(self, nums: List[int]) -> int:
+        n = len(nums)
+        l, r = 0, n-1
+        while l < r:
+            mid = l+r >> 1
+            if nums[mid]==nums[mid^1]:
+                l = mid+1
+            else:
+                r = mid
+        return nums[l]
+```
 
 ## 第三章：图论
 
-### 1，常见算法
+### 1，dfs、bfs
 
-#### 1，dfs、bfs
+#### A，算法模板
 
 ##### **dfs+栈实现：**
 
@@ -1278,15 +1588,13 @@ class Solution:
       a = [(i, j)]    
       grid[i][j] = new	# 入栈立即修改已访问标志
       while a:
-          sr, sc = a.pop()
-          cnt += 1
-          for l, r in zip((sr - 1, sr, sr + 1, sr), (sc, sc - 1, sc, sc + 1)):
-              if 0 <= l < len(grid) and 0 <= r < len(grid[0]) and grid[l][r] == target:	# 判断可访问条件
-                  a.append((l, r))                
-                  grid[l][r] = new	# 入栈立即修改已访问标志
-      maxn = max(maxn, cnt)
+          x, y = a.pop()
+          for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+          	if 0 <= ii < m and 0 <= jj < n and grid2[ii][jj] == target:	# 判断可访问条件
+                  a.append((ii, jj))                
+                  grid[ii][jj] = new	# 入栈立即修改已访问标志
   ```
-
+  
 - 常规实现2：统计前判断
 
   ```python
@@ -1320,13 +1628,11 @@ if grid[i][j] == target:
     q = collections.deque([(i, j)])    
     grid[i][j] = new	# 入队列立即修改已访问标志
     while a:
-        sr, sc = a.popleft()
-        cnt += 1
-        for l, r in zip((sr - 1, sr, sr + 1, sr), (sc, sc - 1, sc, sc + 1)):
-            if 0 <= l < len(grid) and 0 <= r < len(grid[0]) and grid[l][r] == target:	# 判断可访问条件
-                a.append((l, r))              
-                grid[l][r] = new	# 入队列立即修改已访问标志
-    maxn = max(maxn, cnt)
+        x, y = a.popleft()
+        for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+        	if 0 <= ii < m and 0 <= jj < n and grid2[ii][jj] == target:	# 判断可访问条件
+                a.append((ii, jj))                
+                grid[ii][jj] = new	# 入队列立即修改已访问标志
 ```
 
 
@@ -1367,19 +1673,208 @@ class Solution:
 
 *说明*：递归算法思路比较清晰，但是递归过程往往耗费时间空间都较大，而且递归理解难度更大，所以并不推荐写递归`dfs`;更值得研究也更简单的是通过`栈`实现，而且将其改为`队列`后，可以快速实现`bfs`!
 
+##### 常用技巧：
+
+- **添加flag**
+
+  bfs和dfs的简单题中，常常会出现有条件的统计，提个有效的解决方案是添加判断标志`flag`，用于判断相关结果是否需要统计。
+
+  详见`p1020`、`p1905`、`p1254`等。
+
+- **bfs添加计数**
+
+  在计算利用bfs扩散的次数时，可以增加一个bfs层数计数器，直接绑定添加到队列中！
+
+  详见`p1162`
+
+#### B, 练习题目
+
+##### problem 733
+
+> 有一幅以&nbsp;`m x n`&nbsp;的二维整数数组表示的图画&nbsp;`image`&nbsp;，其中&nbsp;`image[i][j]`&nbsp;表示该图画的像素值大小。
+>
+> 你也被给予三个整数 `sr` ,&nbsp; `sc` 和 `newColor` 。你应该从像素&nbsp;`image[sr][sc]`&nbsp;开始对图像进行 上色**填充** 。
+>
+> 为了完成** 上色工作** ，从初始像素开始，记录初始坐标的 **上下左右四个方向上** 像素值与初始坐标相同的相连像素点，接着再记录这四个方向上符合条件的像素点与他们对应 **四个方向上** 像素值与初始坐标相同的相连像素点，……，重复该过程。将所有有记录的像素点的颜色值改为&nbsp;`newColor`&nbsp;。
+>
+> 最后返回 _经过上色渲染后的图像&nbsp;_。
+>
+> &nbsp;
+>
+> **示例 1:**
+>
+> ![](.\images\flood1-grid.jpg)
+>
+> > **输入:** image = [[1,1,1],[1,1,0],[1,0,1]]，sr = 1, sc = 1, newColor = 2
+> > **输出:** [[2,2,2],[2,2,0],[2,0,1]]
+> > **解析:** 在图像的正中间，(坐标(sr,sc)=(1,1)),在路径上所有符合条件的像素点的颜色都被更改成2。
+> > 注意，右下角的像素没有更改为2，因为它不是在上下左右四个方向上与初始点相连的像素点。
+
+思路分析：
+
+本题是最基础的图的遍历问题，可以采用通用模板实现。
+
+```python
+class Solution:
+    def floodFill(self, image: List[List[int]], sr: int, sc: int, newColor: int) -> List[List[int]]:
+        old = image[sr][sc]
+        if newColor == old:  # 防止陷入死循环
+            return image
+        res = [(sr, sc)]
+        while res:
+            l, r = res.pop()
+            image[l][r] = newColor
+            for i, j in [(l, r-1),(l-1, r),(l, r+1), (l+1, r)]:
+                if 0 <= i < len(image) and 0 <= j < len(image[0]) and image[i][j] == old:
+                    res.append((i,j))
+        return image
+```
 
 
-### 2，练习题目
 
-#### problem 733
+problem 200
 
-#### problem 200
+> 给你一个由&nbsp;`'1'`（陆地）和 `'0'`（水）组成的的二维网格，请你计算网格中岛屿的数量。
+>
+> 岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形成。
+>
+> 此外，你可以假设该网格的四条边均被水包围。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> > **输入：**grid = [
+> >   ["1","1","1","1","0"],
+> >   ["1","1","0","1","0"],
+> >   ["1","1","0","0","0"],
+> >   ["0","0","0","0","0"]
+> > ]
+> > **输出：**1
+>
+> **提示：**
+>
+> *   1 &lt;= m, n &lt;= 300
 
-#### problem 695
+思路分析：一次遍历+一次dfs
 
-#### problem 1253
+```python
+class Solution:
+    def numIslands(self, grid: List[List[str]]) -> int:
+        # dfs
+        old, newColor= "1", "0"
+        m, n = len(grid), len(grid[0])
+        
+        res = 0
+        for x in range(m):
+            for y in range(n):
+                if grid[x][y] == old:
+                    res += 1
+                    a = [(x, y)]
+                    while a:
+                        l, r = a.pop()
+                        grid[l][r] = newColor
+                        for i, j in [(l, r - 1), (l - 1, r), (l, r + 1), (l + 1, r)]:
+                            if 0 <= i < len(grid) and 0 <= j < len(grid[0]) and grid[i][j] == old:
+                                a.append((i, j))
 
-#### problem 1162
+        return res
+```
+
+
+
+problem 695
+
+> 给你一个大小为 `m x n` 的二进制矩阵 `grid` 。
+>
+> **岛屿**&nbsp;是由一些相邻的&nbsp;`1`&nbsp;(代表土地) 构成的组合，这里的「相邻」要求两个 `1` 必须在 **水平或者竖直的四个方向上 **相邻。你可以假设&nbsp;`grid` 的四个边缘都被 `0`（代表水）包围着。
+>
+> 岛屿的面积是岛上值为 `1` 的单元格的数目。
+>
+> 计算并返回 `grid` 中最大的岛屿面积。如果没有岛屿，则返回面积为 `0` 。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> > **输入：**grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,1,1,0,1,0,0,0,0,0,0,0,0],[0,1,0,0,1,1,0,0,1,0,1,0,0],[0,1,0,0,1,1,0,0,1,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,0,0,0,0,0,0,1,1,0,0,0,0]]
+> > **输出：**6
+> > **解释：**答案不应该是 `11` ，因为岛屿只能包含水平或垂直这四个方向上的 `1` 。
+
+思路分析：遍历+dfs+计数
+
+```python
+class Solution:
+    def bfs(self, grid, x, y, target, new):
+        m, n = len(grid), len(grid[0])
+        if x<0 or x>=m or y<0 or y>=n or grid[x][y]!=target:
+            return 0
+        ans = 1
+        grid[x][y] = new
+        for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+            ans += self.bfs(grid, ii, jj, target, new)
+        return ans
+    def maxAreaOfIsland(self, grid: List[List[int]]) -> int:
+        # dfs
+        target, new = 1, 0
+        m, n = len(grid), len(grid[0])
+        maxn = 0
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == target:
+                    maxn = max(maxn, self.bfs(grid, i, j, target, new))
+        return maxn
+```
+
+
+
+##### problem 1254
+
+> 二维矩阵 `grid`&nbsp;由 `0`&nbsp;（土地）和 `1`&nbsp;（水）组成。岛是由最大的4个方向连通的 `0`&nbsp;组成的群，封闭岛是一个&nbsp;`完全` 由1包围（左、上、右、下）的岛。
+>
+> 请返回 _封闭岛屿_ 的数目。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> ![](.\images\sample_3_1610.png)
+>
+> > **输入：**grid = [[1,1,1,1,1,1,1,0],[1,0,0,0,0,1,1,0],[1,0,1,0,1,1,1,0],[1,0,0,0,0,1,0,1],[1,1,1,1,1,1,1,0]]
+> > **输出：**2
+> > **解释：**
+> > 灰色区域的岛屿是封闭岛屿，因为这座岛屿完全被水域包围（即被 1 区域包围）。
+
+思路分析：遍历+bfs + flag
+
+注意本题由于在边界上不用计数，所以可以采用一个边界访问标记flag，如果到达边界则忽略置为`False`
+
+```python
+class Solution:
+    def closedIsland(self, grid: List[List[int]]) -> int:
+        m, n = len(grid), len(grid[0])
+        cnt = 0
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == 0:
+                    grid[i][j] = 1
+                    a, flag = [(i, j)], True
+                    while a:
+                        x, y = a.pop()
+                        if x==0 or x == m-1 or y==0 or y==n-1:
+                            flag = False
+                        for ii, jj in zip((x,x-1,x,x+1),(y-1,y,y+1,y)):
+                            if 0 <= ii < m and 0 <= jj < n and grid[ii][jj] == 0:
+                                grid[ii][jj] = 1
+                                a.append((ii,jj))
+                    if flag:
+                        cnt += 1
+        return cnt
+```
+
+
+
+##### problem 1162  **Hard**
 
 > 你现在手里有一份大小为&nbsp;`n x n`&nbsp;的 网格 `grid`，上面的每个 单元格 都用&nbsp;`0`&nbsp;和&nbsp;`1`&nbsp;标记好了。其中&nbsp;`0`&nbsp;代表海洋，`1`&nbsp;代表陆地。
 >
@@ -1408,7 +1903,7 @@ class Solution:
 > *   1 &lt;= n&nbsp;&lt;= 100
 > *   `grid[i][j]`&nbsp;不是&nbsp;`0`&nbsp;就是&nbsp;`1`
 
-**思路分析：**
+**思路1：多源bfs**
 
 这是`Tree的bfs`拓展版：从一个源点出发，每次向`上下左右`4个方向扩散。
 
@@ -1425,7 +1920,7 @@ class Solution:
 
   > 你可以想象成你从每个陆地上派了很多支船去踏上伟大航道，踏遍所有的海洋。每当船到了新的海洋，就会分裂成4条新的船，向新的未知海洋前进（访问过的海洋就不去了）。如果船到达了某个未访问过的海洋，那他们是第一个到这片海洋的。很明显，这么多船最后访问到的海洋，肯定是离陆地最远的海洋。
 
-  **最后出队列的是最优结果！**
+  **最后出队列的是就是最优结果，即离陆地最远的海洋！**
 
   ```python
   class Solution:
@@ -1448,5 +1943,262 @@ class Solution:
           return -1 if ans<=0 else ans
   ```
 
-  
+
+**思路2：多源最短路**
+
+显然，如果将
+
+##### problem 1020
+
+> 给你一个大小为 `m x n` 的二进制矩阵 `grid` ，其中 `0` 表示一个海洋单元格、`1` 表示一个陆地单元格。
+>
+> 一次 **移动** 是指从一个陆地单元格走到另一个相邻（**上、下、左、右**）的陆地单元格或跨过 `grid` 的边界。
+>
+> 返回网格中** 无法 **在任意次数的移动中离开网格边界的陆地单元格的数量。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> ![](.\images\enclaves1.jpg)
+> > **输入：**grid = [[0,0,0,0],[1,0,1,0],[0,1,1,0],[0,0,0,0]]
+> > **输出：**3
+> > **解释：**有三个 1 被 0 包围。一个 1 没有被包围，因为它在边界上。
+>
+> **提示：**
+>
+> *   `m == grid.length`
+> *   `n == grid[i].length`
+> *   1 &lt;= m, n &lt;= 500
+
+**思路1**
+
+分析：dfs + flag判断边界 + 栈计数
+
+本题是正常的图连通问题，只需要添加`flag`判断该区域是否会连接到边界；再对每次dfs过程的入栈元素计数，即可获得最终解。
+
+实现：
+
+```python
+class Solution:
+    def numEnclaves(self, grid: List[List[int]]) -> int:
+        m, n = len(grid), len(grid[0])
+        ans = 0
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j]==1:
+                    grid[i][j] = 0
+                    a = [(i, j)]
+                    cnt, flag = 0, True
+                    while a:
+                        x, y = a.pop()
+                        cnt += 1
+                        if x==0 or x == m-1 or y==0 or y==n-1:
+                            flag = False
+                        for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+                            if 0 <= ii < m and 0 <= jj < n and grid[ii][jj] == 1:
+                                grid[ii][jj] = 0
+                                a.append((ii, jj,))
+                    if flag:
+                        ans += cnt
+        return ans
+```
+
+**思路2：并查集**
+
+并查集的做法是，遍历整个网格，对于网格中的每个陆地单元格，将其与所有相邻的陆地单元格做合并操作。由于需要判断每个陆地单元格所在的连通分量是否和网格边界相连，因此并查集还需要记录每个单元格是否和网格边界相连的信息，在合并操作时更新该信息。
+
+在遍历网格完成并查集的合并操作之后，再次遍历整个网格，通过并查集中的信息判断每个陆地单元格是否和网格边界相连，统计飞地的数量。
+
+```python
+class UnionFind:
+    def __init__(self, grid: List[List[int]]):
+        m, n = len(grid), len(grid[0])
+        self.parent = [0] * (m * n)
+        self.rank = [0] * (m * n)
+
+    def find(self, x: int) -> int:
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def merge(self, x: int, y: int) -> None:
+        x, y = self.find(x), self.find(y)
+        if x == y:
+            return
+        if self.rank[x] > self.rank[y]:
+            self.parent[y] = x
+            self.onEdge[x] |= self.onEdge[y]
+        elif self.rank[x] < self.rank[y]:
+            self.parent[x] = y
+            self.onEdge[y] |= self.onEdge[x]
+        else:
+            self.parent[y] = x
+            self.onEdge[x] |= self.onEdge[y]
+            self.rank[x] += 1
+
+class Solution:
+    def numEnclaves(self, grid: List[List[int]]) -> int:
+        uf = UnionFind(grid)
+        m, n = len(grid), len(grid[0])
+        for i, row in enumerate(grid):
+            for j, v in enumerate(row):
+                if v:
+                    idx = i * n + j
+                    if j + 1 < n and grid[i][j + 1]:
+                        uf.merge(idx, idx + 1)
+                    if i + 1 < m and grid[i + 1][j]:
+                        uf.merge(idx, idx + n)
+        return sum(grid[i][j] and not uf.onEdge[uf.find(i * n + j)] for i in range(1, m - 1) for j in range(1, n - 1))
+```
+
+
+
+
+
+##### problem 1905
+
+> 给你两个&nbsp;`m x n`&nbsp;的二进制矩阵&nbsp;`grid1` 和&nbsp;`grid2`&nbsp;，它们只包含&nbsp;`0`&nbsp;（表示水域）和 `1`&nbsp;（表示陆地）。一个 **岛屿**&nbsp;是由 **四个方向**&nbsp;（水平或者竖直）上相邻的&nbsp;`1`&nbsp;组成的区域。任何矩阵以外的区域都视为水域。
+>
+> 如果 `grid2`&nbsp;的一个岛屿，被 `grid1`&nbsp;的一个岛屿&nbsp;**完全** 包含，也就是说 `grid2`&nbsp;中该岛屿的每一个格子都被 `grid1`&nbsp;中同一个岛屿完全包含，那么我们称 `grid2`&nbsp;中的这个岛屿为 **子岛屿**&nbsp;。
+>
+> 请你返回 `grid2`&nbsp;中 **子岛屿**&nbsp;的 **数目**&nbsp;。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> ![](.\images\test1.png)
+> > **输入：**grid1 = [[1,1,1,0,0],[0,1,1,1,1],[0,0,0,0,0],[1,0,0,0,0],[1,1,0,1,1]], grid2 = [[1,1,1,0,0],[0,0,1,1,1],[0,1,0,0,0],[1,0,1,1,0],[0,1,0,1,0]]
+> > **输出：**3
+> > **解释：**如上图所示，左边为 grid1 ，右边为 grid2 。
+> > grid2 中标红的 1 区域是子岛屿，总共有 3 个子岛屿。
+
+*思路1*：dfs + flag
+
+对于`grid2`进行遍历，对于它的每一座岛屿，都用flag判断是否是`grid1`的子岛屿，如果都是，则是；如果有一个不是，则整个岛都不是；
+
+实现：
+
+```python
+class Solution:
+    def countSubIslands(self, grid1: List[List[int]], grid2: List[List[int]]) -> int:
+        m, n = len(grid1), len(grid1[0])
+        ans = 0
+        for i in range(m):
+            for j in range(n):
+                if grid2[i][j] == 1:
+                    a = [(i, j)]
+                    grid2[i][j] = 0
+                    flag = True
+                    while a:
+                        x, y = a.pop()
+                        if grid1[x][y] != 1:
+                            flag = False
+                        for ii, jj in zip((x, x - 1, x, x + 1), (y - 1, y, y + 1, y)):
+                            if 0 <= ii < m and 0 <= jj < n and grid2[ii][jj] == 1:
+                                grid2[ii][jj] = 0
+                                a.append((ii, jj))
+                    if flag:
+                        ans += 1
+        return ans
+```
+
+**思路2：并查集**
+
+### 2，二叉树
+
+#### A, 常见算法
+
+##### 1，二叉树问题
+
+- 前序中序后序遍历：
+
+  二叉树常见遍历方式存在`前序(根左右)，中序(左根右)、后序(左右根)`三种遍历方式
+
+- **二叉树构造生成**
+
+  只要知道`中序`+`前序/后序`的一种遍历结果，便可以重新构建二叉树。
+
+  详见`p105(前中)`、`p106(中后)`
+
+#### B, 练习题目
+
+##### problem 105
+
+
+
+
+
+
+
+
+
+## 第四章：动态规划
+
+### dp说明
+
+动态规划方法可以解决绝大多数，满足马尔科夫性的问题：即无后效性，`s(n)`仅仅与`s(n-1)`有关，与之前所有状态无关！
+
+#### `opt`状态定义：
+
+能否成功解决一个dp问题，往往与问题状态定义高度相关。一个正确且合理的定义是解决dp问题的关键。
+
+一般实际解决dp问题，通常采用*自底向上递推*求解。
+
+几个常用步骤：
+
+- <u>排序</u>，如果问题输入数据并不存在序关系，且题目结果也没有要求顺序要求，或者序关系存在实际应用意义，此时都可以先对数据排序，后进行dp求解！
+- 分析简单的情景，并确定问题划分方式，即怎么拆开考虑。
+- <u>最优状态OPT定义</u>？ 
+  - 选择几个参数，以及每个参数含义
+  - 考虑参数含义从`0`到`i`、从`i`到`j`、背包问题加最大容量限定`k/w`等
+- <u>确定初始条件</u>
+- <u>状态转移方程</u>
+  - 简单场景：`opt[i]`仅与其前一项`opt[i-1]`有关，或者仅仅和自己有关。
+  - 二维场景：对于当前的`opt[i][j]`，常常需要枚举`opt[k][j-1]`或`opt[i-1][k]`
+  - 多维场景：一般都是理论价值，实际算法实现中，最多写`3`维，更新过程并不简单！
+- OPT中加入*递归终止条件*或者*递推起始条件*
+
+### 股票问题
+
+[参考](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/solution/gu-piao-wen-ti-python3-c-by-z1m/)
+
+#### problem 121
+
+**单次股票买卖问题**
+
+> 给定一个数组 `prices` ，它的第&nbsp;`i` 个元素&nbsp;`prices[i]` 表示一支给定股票第 `i` 天的价格。
+>
+> 你只能选择 **某一天** 买入这只股票，并选择在 **未来的某一个不同的日子** 卖出该股票。设计一个算法来计算你所能获取的最大利润。
+>
+> 返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 `0` 。
+>
+> &nbsp;
+>
+> **示例 1：**
+>
+> > **输入：**[7,1,5,3,6,4]
+> > **输出：**5
+> > **解释：**在第 2 天（股票价格 = 1）的时候买入，在第 5 天（股票价格 = 6）的时候卖出，最大利润 = 6-1 = 5 。
+> >      注意利润不能是 7-1 = 6, 因为卖出价格需要大于买入价格；同时，你不能在买入前卖出股票。
+>
+> **提示：**
+>
+> *   1 &lt;= prices.length &lt;= 10<sup>5</sup>
+> *   0 &lt;= prices[i] &lt;= 10<sup>4</sup>
+
+本题是简单题，只需要记录一下截止目前为之的最小股票价格，就能算的当前最佳收益。
+
+- `opt[i]`到第`i`天能获得的最高收益。
+- 状态转移：`dp[i]=max(dp[i−1],prices[i]−minprice)`
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        minx = prices[0]
+        for i in range(len(prices)):
+            minx, prices[i] = min(minx, prices[i]), prices[i]-minx
+        return max(prices)
+```
 

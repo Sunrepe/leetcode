@@ -32,20 +32,20 @@ def print_tree(root: TreeNode):
 class Solution:
     def buildTree(self, preorder: List[int], inorder: List[int]) -> TreeNode:
         n = len(inorder)
-        index = {element: i for i, element in enumerate(inorder)}
+        idx_map = {element: i for i, element in enumerate(inorder)}
 
-        def my_tree(pre, ino):
-            if pre[0] > pre[-1]:
+        def my_tree(in_l, in_r):
+            if in_l > in_r:
                 return None
-            ino_root = index[preorder[pre[0]]]
-            size_left_tree = ino_root - ino[0]      # 求出左边树长度很有用！ 根据树长度进行左右子树构建，因为同一颗子树的前序和中序遍历长度一定是一致的
+            val = preorder.pop(0)   # 最左边的一定是当前子树的根，刚好符合二叉树dfs遍历过程，后序遍历时则只需要pop最后一个元素即可！
+            root_index = idx_map[val]
 
-            root = TreeNode(preorder[pre[0]])
-            root.left = my_tree([pre[0]+1, pre[0]+size_left_tree], [ino[0], ino_root-1])
-            root.right = my_tree([pre[0]+size_left_tree+1, pre[-1]], [ino_root+1, ino[-1]])
+            root = TreeNode(val)
+            root.left = my_tree(in_l, root_index-1)
+            root.right = my_tree(root_index+1, in_r)
             return root
 
-        return my_tree([0, n-1], [0, n-1])
+        return my_tree(0, n-1)
 
 
 # 一个简洁的写法，但是该方法会出现两个数组的 的频繁拷贝，时间、空间复杂度都更大

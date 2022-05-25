@@ -2126,9 +2126,95 @@ class Solution:
 
 ##### problem 105
 
+> 给定两个整数数组&nbsp;`preorder` 和 `inorder`&nbsp;，其中&nbsp;`preorder` 是二叉树的**先序遍历**， `inorder`&nbsp;是同一棵树的**中序遍历**，请构造二叉树并返回其根节点。
+>
+> &nbsp;
+>
+> **示例 1:**
+>
+> ![](.\images\tree.jpg)
+> > **输入：** preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
+> > **输出：** [3,9,20,null,null,15,7]
 
+**思路：递归构造二叉树**
 
+- 对于任意一颗树而言，前序遍历的形式总是
 
+  `[ 根节点, [左子树的前序遍历结果], [右子树的前序遍历结果] ]`
+
+  即根节点总是前序遍历中的第一个节点。而中序遍历的形式总是
+
+  `[ [左子树的中序遍历结果], 根节点, [右子树的中序遍历结果] ]`
+
+- 递归的思路就是，每次在中序遍历中找到`root`，从而可以将问题拆分成两个子问题：左边构造左子树，右边构造右子树。
+
+- <u>细节 1</u>：
+
+  对于`root`位置查找，如果每次都要扫描查找效率较低，对于无重复元素的数组，可以利用哈希映射`dict`；从而快速找到其索引下标`root_index`
+
+- <u>细节 2</u>：递归终止条件
+
+  但传递的`inorder`数组为空时，即不可继续构造，`return None`即可
+
+- <u>实际优化</u>：
+
+  不用每次构造左右子树都重新传递两个&nbsp;`preorder` 和 `inorder`数组，实际上，可以用指针定位当前传递数据的位置即可。
+
+  再进一步，由于前序遍历最前面的元素往往是当前树的根节点，只要在递归调用时保证`根、左、右`顺序递归，实际上每次对应的根都是当前`preorder`最前面的元素
+
+**实现**：
+
+```python
+class Solution:
+    def buildTree(self, preorder: List[int], inorder: List[int]) -> TreeNode:
+        n = len(inorder)
+        idx_map = {element: i for i, element in enumerate(inorder)}
+
+        def my_tree(in_l, in_r):
+            if in_l > in_r:
+                return None
+            # preorder第一个数是根，刚好符合二叉树dfs遍历过程
+            val = preorder.pop(0)   
+            root_index = idx_map[val]
+
+            root = TreeNode(val)
+            root.left = my_tree(in_l, root_index-1)
+            root.right = my_tree(root_index+1, in_r)
+            return root
+
+        return my_tree(0, n-1)
+```
+
+#### problem 106
+
+> 与problem 105类似，此时给定的的是中序和后序遍历的结果，构建二叉树，并返回根节点。
+
+**思路：递归实现**
+
+- 与problem 105解法极其类似，需要注意的是，由于后序遍历最后一个数往往是当前的`root`,所以每次总是取出当前`postorder`的最后一个数。
+- 进一步，由于后序遍历顺序是`左右根`，所以反向构造时，要先`dfs`其右子树，最后访问左子树。
+
+实现：
+
+```python
+class Solution:
+    def buildTree(self, inorder: List[int], postorder: List[int]) -> TreeNode:        
+        n = len(inorder)
+        idx_map = {element: i for i, element in enumerate(inorder)}
+
+        def my_tree(in_left, in_right):
+            if in_left > in_right:
+                return None
+            val = postorder.pop()  # 后续遍历
+            
+           	root_index = idx_map[val]
+            root = TreeNode(val)
+            root.right = my_tree(root_index+1, in_right)	# 后续遍历，先构造右子树
+            root.left = my_tree(in_left, root_index-1)
+            return root
+        
+        return my_tree(0, n-1)
+```
 
 
 

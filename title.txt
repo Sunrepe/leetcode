@@ -1,0 +1,19 @@
+---
+title:
+- type: main
+  text: LeetCode手册
+- type: subtitle
+  text: python实现
+creator:
+- role: author
+  text: 周旭峰
+- role: editor
+  text: Jojo Zhou
+identifier:
+- scheme: DOI
+  text: doi:10.234234.234/33
+publisher:  Self Pub
+rights: © 2023 LeetCode手册，CC BY-NC
+ibooks:
+  version: 1.3.4
+...

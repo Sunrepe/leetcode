@@ -24,7 +24,7 @@
 
 ## 第一章：基础数据结构
 
-### 1，set - 集合
+### 1，set & dict & map
 
 #### problem 1
 
@@ -68,6 +68,19 @@ class Solution:
                 return [nums.index(target-nums[i]), i]
             cmp.add(nums[i])
 ```
+
+- 本题更直观的思路是将set 变成字典dict：key对应加入字典的值，value是相应的index：
+
+  ```python
+  class Solution:
+      def twoSum(self, nums: List[int], target: int) -> List[int]:
+          hashtable = dict()
+          for i, num in enumerate(nums):
+              if target - num in hashtable:
+                  return [hashtable[target - num], i]
+              hashtable[nums[i]] = i
+          return []
+  ```
 
 #### problem 217
 
@@ -143,6 +156,29 @@ class UnionFind:
             self.onEdge[x] |= self.onEdge[y]
             self.rank[x] += 1
 ```
+
+### 4，滑动窗口
+
+**解题思路：**
+
+- 滑动窗口类型的题目，一般都设置两个指针，分别指向窗口起始和窗口终点。通过其中一个指针按规律滑动，另一个指针按满足条件滑动
+- 滑动窗口进阶题可以进行首尾分别滑动，类似于快排算法中的partition
+
+#### 练习题
+
+[problem209](#4)
+
+##### problem3
+
+> 给定一个字符串 `s` ，请你找出其中不含有重复字符的 **最长子串** 的长度。
+>
+> **示例 1:**
+>
+> >输入: s = "abcabcbb"
+> >输出: 3 
+> >解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
+
+
 
 
 
@@ -322,6 +358,8 @@ while l+1 != r:
 ### 练习题目
 
 #### Problem 209
+
+<>
 
 > 给定一个含有 n 个正整数的数组和一个正整数 target 。
 >
@@ -2232,7 +2270,7 @@ class Solution:
 
 一般实际解决dp问题，通常采用*自底向上递推*求解。
 
-几个常用步骤：
+**几个常用步骤**：
 
 - <u>排序</u>，如果问题输入数据并不存在序关系，且题目结果也没有要求顺序要求，或者序关系存在实际应用意义，此时都可以先对数据排序，后进行dp求解！
 - 分析简单的情景，并确定问题划分方式，即怎么拆开考虑。
@@ -2245,6 +2283,15 @@ class Solution:
   - 二维场景：对于当前的`opt[i][j]`，常常需要枚举`opt[k][j-1]`或`opt[i-1][k]`
   - 多维场景：一般都是理论价值，实际算法实现中，最多写`3`维，更新过程并不简单！
 - OPT中加入*递归终止条件*或者*递推起始条件*
+
+**dp问题OPT定义思路**：
+
+- 排序
+- 倒序解决
+- 对于字符串问题：`subsequence、substring`等，往往需要考虑`OPT[i]`表示以`s[i]`为结尾（为起始）等
+- 加参数：是否需要，以及是否有意义。
+
+
 
 ### 股票问题
 
